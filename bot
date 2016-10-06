@@ -17,6 +17,7 @@ if args[1] == "plugin" then
     f.writeLine(pluginData)
     f.close()
     print("Plugin installed!")
+    return
   else
     printError("Usage: plugin <plugin-name>")
     printError("Installs a plugin from the web")
