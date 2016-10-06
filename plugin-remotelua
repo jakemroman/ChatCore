@@ -1,0 +1,23 @@
+return {
+  ["name"] = "RemoteLua",
+  ["hideHelp"] = true
+  ["commands"] = {
+    ["lua"] = function(args,user)
+      if perm(user,4) then
+        if args[1] == nil then
+          tell(user,"&cUsage: lua <code>")
+          return
+        end
+        local luaCmd = ""
+        for i=1,#args do
+          luaCmd = luaCmd..args[i]
+        end
+        pcall(loadstring(luaCmd))
+        tell(user,"&aRunning code.")
+      else
+        tell(user,"Access Denied")
+        return
+      end
+    end
+  },
+}
