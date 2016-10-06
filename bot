@@ -19,7 +19,7 @@ if args[1] == "plugin" then
     print("Plugin installed!")
   else
     printError("Usage: plugin <plugin-name>")
-    printError("Installs a plugin from the web)
+    printError("Installs a plugin from the web")
     return
   end
 end
