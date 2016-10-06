@@ -1,0 +1,241 @@
+-- QuantumTech Bot Ultimate Edition
+-- Copyright Jake Roman (c) 2016
+
+-- Integrated Variables
+local logValues = {
+  ["info"] = "[Info]  ",
+  ["warn"] = "[Warn]  ",
+  ["alert"] = "[Alert] ",
+  ["error"] = "[Error] ",
+  ["crash"] = "[Crash] ",
+  ["log"] = "[Log]   ",
+}
+
+-- Peripherals
+local chatbox = peripheral.find("chat_box")
+if not chatbox then
+  printError("Chatbox is required!")
+  while true do sleep(10) end
+end
+
+-- Text Formatting
+local colorFormat = "\0\167"
+local function format(str)
+  return string.gsub(str,"&",colorFormat)
+end
+
+-- Check Config
+if not fs.exists("/bot-config") then
+  cfg = {
+    ["logLimit"] = 500,
+    ["prefix"] = "&f",
+    ["name"] = "&7&lBot&r",
+    ["logFile"] = "/bot-log",
+    ["plugins"] = "/plugins",
+    ["permFile"] = "/bot-perms",
+    ["cmdPrefix"] = "bot",
+    ["startup"] = "&7Starting up...",
+  }
+  f = fs.open("/bot-config","w")
+  f.writeLine(textutils.serialise(cfg))
+  f.close()
+else
+  f = fs.open("/bot-config","r")
+  cfg = textutils.unserialise(f.readAll())
+  f.close()
+end
+if not fs.exists(cfg.logFile) then
+  f = fs.open(cfg.logFile,"w")
+  f.write()
+  f.close()
+end
+if not fs.exists(cfg.permFile) then
+  f = fs.open(cfg.permFile,"w")
+  f.writeLine([[
+--Permission Levels Range 0-4
+{
+  ["botOwner"] = 4,
+}
+  ]])
+  f.close()
+end
+if not fs.isDir(cfg.plugins) then
+  fs.makeDir(cfg.plugins)
+end
+
+-- Internal Functions
+f = fs.open(cfg.permFile,"r")
+local permLevels = textutils.unserialise(f.readAll())
+f.close()
+function say(str)
+  chatbox.say(format(str),format(cfg.name),format(cfg.prefix))
+end
+function tell(user,str)
+  chatbox.tell(user,format(str),format(cfg.name),format(cfg.prefix))
+end
+local function log(str,level)
+  f = fs.open(cfg.logFile,"r")
+  lineData = true
+  local logTable = {}
+  repeat
+    lineData = f.readLine()
+    logTable[#logTable+1] = lineData
+  until lineData == nil
+  f.close()
+  if true then
+    local newLog = {}
+    if #logTable >= cfg.logLimit then logTable[#logTable] = nil end
+    local logCount = 0
+    for i,v in pairs(logTable) do
+      logCount = logCount + 1
+      newLog[logCount] = v
+    end
+    f = fs.open(cfg.logFile,"w")
+    local logPrefix = "log"
+    if level then
+      if logValues[level] then
+        logPrefix = level
+      end
+    end
+    f.writeLine(logValues[logPrefix]..str)
+    for i=1,#newLog do
+      f.writeLine(newLog[i])
+    end
+    f.close()
+    if logPrefix == "info" then
+      term.setTextColor(colors.lightGray)
+      term.write("[")
+      term.setTextColor(colors.cyan)
+      term.write("Info")
+      term.setTextColor(colors.lightGray)
+      term.write("]  ")
+    elseif logPrefix == "warn" then
+      term.setTextColor(colors.lightGray)
+      write("[")
+      term.setTextColor(colors.yellow)
+      write("Warn")
+      term.setTextColor(colors.lightGray)
+      write("]  ")
+    elseif logPrefix == "alert" then
+      term.setTextColor(colors.lightGray)
+      write("[")
+      term.setTextColor(colors.orange)
+      write("Alert")
+      term.setTextColor(colors.lightGray)
+      write("] ")
+    elseif logPrefix == "error" then
+      term.setTextColor(colors.lightGray)
+      write("[")
+      term.setTextColor(colors.red)
+      write("Error")
+      term.setTextColor(colors.lightGray)
+      write("] ")
+    elseif logPrefix == "crash" then
+      term.setTextColor(colors.lightGray)
+      write("[")
+      term.setTextColor(colors.red)
+      write("Crash")
+      term.setTextColor(colors.lightGray)
+      write("] ")
+    elseif logPrefix == "log" then
+      term.setTextColor(colors.lightGray)
+      write("[")
+      term.setTextColor(colors.lime)
+      write("Log")
+      term.setTextColor(colors.lightGray)
+      write("]   ")
+    end
+    term.setTextColor(colors.white)
+    print(str)
+  end
+end
+function perm(username,level)
+  if permLevels[username] then
+    if permLevels[username] >= level then
+      return true
+    else
+      return false
+    end
+  else
+    return false
+  end
+end
+function setPerm(username,level)
+  permLevels[username] = level
+  f = fs.open(cfg.permFile,"w")
+  f.writeLine(textutils.serialise(permLevels))
+  f.close()
+end
+function getPerm(username)
+  return permLevels[username]
+end
+
+-- Initialization
+say(cfg.startup)
+log("Starting Up","info")
+sleep(0.5)
+plugins = {}
+
+-- Bot Code
+function botMain()
+  local plList = fs.list(cfg.plugins)
+  for _,i in pairs(plList) do
+    f = fs.open(cfg.plugins.."/"..i,"r")
+    local pluginData = f.readAll()
+    f.close()
+    plugins[#plugins+1] = loadstring(pluginData)()
+    log("Plugin "..plugins[#plugins].name.." loaded","info")
+  end
+  for i=1,#plugins do
+    if plugins[i]["init"] then
+      plugins[i]["init"]()
+    end
+  end
+  while true do
+    evt,user,msg,cmdArgs = os.pullEvent()
+    if evt == "command" and string.lower(msg) == cfg.cmdPrefix and cmdArgs[1] ~= nil then
+      for i=1,#plugins do
+        for n,v in pairs(plugins[i]["commands"]) do
+          if string.lower(cmdArgs[1]) == n then
+            local newEnv = _G
+            newEnv["say"] = say
+            newEnv["tell"] = tell
+            newEnv["perm"] = perm
+            newEnv["log"] = log
+            newEnv["plugins"] = plugins
+            newEnv["setPerm"] = setPerm
+            newEnv["getPerm"] = getPerm
+            func = plugins[i]["commands"][n]
+            setfenv(func,newEnv)
+            local newArgs = {}
+            for i=2,#cmdArgs do
+              newArgs[#newArgs+1] = cmdArgs[i]
+            end
+            func(newArgs,user)
+          end
+        end
+      end
+    end
+    if evt == "chat" then
+      for i=1,#plugins do
+        if plugins[i]["listener"] then
+          plugins[i]["listener"](msg,user)
+        end
+      end
+    end
+  end
+end
+
+-- Crash Handling
+ok,err = pcall(botMain)
+if err == "Terminated" then
+  say("&cTerminated")
+  log("Bot Terminated","error")
+end
+if not ok then
+  say("&4Core Crash! &cError:")
+  say("&7"..err)
+  log(err,"crash")
+  sleep(15)
+  os.reboot()
+end
