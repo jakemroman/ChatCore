@@ -1,0 +1,110 @@
+return {
+  ["name"] = "Essentials",
+  ["hideHelp"] = false,
+  ["commands"] = {
+    ["say"] = function(args,user)
+      --print("Say Function Running")
+      if args[1] == nil then
+        tell(user,"&cUsage: say <message>")
+      end
+      if perm(user,3) then
+        local message = ""
+        for i=1,#args do
+          message = message..args[i].." "
+        end
+        say(message)
+      else
+        tell(user,"&cPermission denied")
+        return
+      end
+    end,
+    ["help"] = function(args,user)
+      if not perm(user,1) then
+        tell(user,"&cPermission denied")
+        return
+      end
+      if not args[1] then
+        tell(user,"&aAll installed plugins:")
+        for i=1,#plugins do
+          tell(user,"&7"..plugins[i]["name"])
+        end
+      else
+        for i=1,#plugins do
+          if plugins[i]["hideHelp"] then
+            tell(user,"&cPlugin Hidden")
+            return
+          end
+          if string.lower(plugins[i]["name"]) == string.lower(args[1]) then
+            tell(user,"&a"..plugins[i]["name"].." Commands:")
+            for x,v in pairs(plugins[i]["commands"]) do
+              tell(user,"&7"..x)
+            end
+            return
+          else
+            tell(user,"&cPlugin does not exist")
+            return
+          end
+        end
+      end
+    end,
+    ["reboot"] = function(args,user)
+      if perm(user,4) then
+        say("&8Rebooting")
+        sleep(1)
+        os.reboot()
+      else
+        tell(user,"&cPermission denied")
+      end
+    end,
+    ["shutdown"] = function(args,user)
+      if perm(user,4) then
+        say("&8Shutting down")
+        sleep(1)
+        os.shutdown()
+      else
+        tell(user,"&cPermission denied")
+      end
+    end,
+    ["checklevel"] = function(args,user)
+      if getPerm(user) == nil then
+        tell(user,"&7You are level &40")
+      elseif getPerm(user) == 1 then
+        tell(user,"&7You are level &61")
+      elseif getPerm(user) == 2 then
+        tell(user,"&7You are level &e2")
+      elseif getPerm(user) == 3 then
+        tell(user,"&7You are level &23")
+      elseif getPerm(user) == 4 then
+        tell(user,"&7You are level &a4")
+      else
+        tell(user,"&7You are level &8?")
+      end
+    end,
+    ["setlevel"] = function(args,user)
+      if perm(user,4) then
+        if args[1] == nil then
+          tell(user,"&cSpecify a player")
+          return
+        end
+        if args[2] == nil then
+          tell(user,"&cSpecify a level (0-4)")
+          return
+        end
+        if tonumber(args[2]) == nil then
+          tell(user,"&cLevel must be a number")
+          return
+        end
+        local levelNum = tonumber(args[2])
+        if levelNum >= 0 and levelNum <= 4 then
+          setPerm(args[1],levelNum)
+          tell(user,"&aSuccess!")
+        else
+          tell(user,"&cLevel must be 0-4")
+          return
+        end
+      else
+        tell(user,"&cPermission denied")
+      end
+    end,
+  }
+}
