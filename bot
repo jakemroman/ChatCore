@@ -1,6 +1,29 @@
 -- QuantumTech Bot Ultimate Edition
 -- Copyright Jake Roman (c) 2016
 
+args = {...}
+
+-- Plugin Install
+if args[1] == "plugin" then
+  if args[2] ~= nil then
+    h = http.get("https://raw.github.com/jakemroman/ChatCore/master/plugin-"..args[2])
+    if not h then
+      printError("Cannot locate plugin!")
+      return
+    end
+    local pluginData = h.readAll()
+    h.close()
+    f = fs.open("/plugins/"..args[2],"w")
+    f.writeLine(pluginData)
+    f.close()
+    print("Plugin installed!")
+  else
+    printError("Usage: plugin <plugin-name>")
+    printError("Installs a plugin from the web)
+    return
+  end
+end
+
 -- Integrated Variables
 local logValues = {
   ["info"] = "[Info]  ",
