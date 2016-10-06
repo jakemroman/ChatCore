@@ -10,7 +10,7 @@ return {
         end
         local luaCmd = ""
         for i=1,#args do
-          luaCmd = luaCmd..args[i]
+          luaCmd = luaCmd..args[i].." "
         end
         pcall(loadstring(luaCmd))
         tell(user,"&aRunning code.")
