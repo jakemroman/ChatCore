@@ -1,0 +1,24 @@
+return {
+  ["name"] = "ChatLogger",
+  ["commands"] = {
+    ["toggle"] = function (args,user)
+      if not perm(user,3) then
+        tell(user,"&cPermission denied")
+      end
+      if not fs.exists("/.chatLogging") then
+        f = fs.open("/.chatLogging","w")
+        f.write("true")
+        f.close()
+        tell(user,"&aLogging enabled")
+      else
+        fs.delete("/.chatLogging")
+        tell(user,"&cLogging disabled")
+      end
+    end,
+  },
+  ["listener"] = function(msg,user)
+    if fs.exists("/.chatLogging") then
+      log(user..": "..msg)
+    end
+  end,
+}
