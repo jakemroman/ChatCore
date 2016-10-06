@@ -1,6 +1,6 @@
 return {
   ["name"] = "RemoteLua",
-  ["hideHelp"] = true
+  ["hideHelp"] = true,
   ["commands"] = {
     ["lua"] = function(args,user)
       if perm(user,4) then
