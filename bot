@@ -35,6 +35,7 @@ if not fs.exists("/bot-config") then
     ["permFile"] = "/bot-perms",
     ["cmdPrefix"] = "bot",
     ["startup"] = "&7Starting up...",
+    ["autoUpdate"] = true,
   }
   f = fs.open("/bot-config","w")
   f.writeLine(textutils.serialise(cfg))
@@ -185,6 +186,32 @@ function botMain()
     f.close()
     plugins[#plugins+1] = loadstring(pluginData)()
     log("Plugin "..plugins[#plugins].name.." loaded","info")
+  end
+  if cfg.autoUpdate then
+    log("Checking for updates","info")
+    f = fs.open(shell.getRunningProgram(),"r")
+    local currentBot = f.readAll()
+    f.close()
+    h = http.get("https://raw.github.com/jakemroman/ChatCore/bot")
+    if not h then
+      log("Failed to connect","alert")
+    else
+      local latestBot = h.readAll()
+      h.close()
+      if latestBot ~= currentBot then
+        log("Updating Core","log")
+        f = fs.open(shell.getRunningProgram(),"w")
+        f.writeLine(latestBot)
+        f.close()
+        say("&aCore Updated")
+        sleep(5)
+        os.reboot()
+      else
+        log("Up to date!","log")
+      end
+    end
+  else
+    log("Auto-Updates are disabled","warn")
   end
   for i=1,#plugins do
     if plugins[i]["init"] then
