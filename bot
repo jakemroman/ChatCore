@@ -223,13 +223,25 @@ function botMain()
       local latestBot = h.readAll()
       h.close()
       if latestBot ~= currentBot then
-        log("Updating Core","log")
-        f = fs.open(shell.getRunningProgram(),"w")
-        f.writeLine(latestBot)
-        f.close()
-        say("&aCore Updated")
-        sleep(5)
-        os.reboot()
+        if fs.exists("/.recentUpdate") then
+          log("Update loop detected!","error")
+          cfg.autoUpdate = false
+          f = fs.open("/bot-config","w")
+          f.writeLine(textutils.serialise(cfg))
+          f.close()
+          log("Auto updating has been disabled","warn")
+        else
+          log("Updating Core","log")
+          f = fs.open(shell.getRunningProgram(),"w")
+          f.writeLine(latestBot)
+          f.close()
+          say("&aCore Updated")
+          f = fs.open("/.recentUpdate","w")
+          f.writeLine(true)
+          f.close()
+          sleep(5)
+          os.reboot()
+        end
       else
         log("Up to date!","log")
       end
@@ -251,6 +263,9 @@ function botMain()
       setFenv(func,newEnv)
       func()
     end
+  end
+  if fs.exists("/.recentUpdate") then
+    fs.delete("/.recentUpdate")
   end
   while true do
     evt,user,msg,cmdArgs = os.pullEvent()
