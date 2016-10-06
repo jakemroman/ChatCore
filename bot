@@ -239,7 +239,17 @@ function botMain()
   end
   for i=1,#plugins do
     if plugins[i]["init"] then
-      plugins[i]["init"]()
+      local newEnv = _G
+      newEnv["say"] = say
+      newEnv["tell"] = tell
+      newEnv["perm"] = perm
+      newEnv["log"] = log
+      newEnv["plugins"] = plugins
+      newEnv["setPerm"] = setPerm
+      newEnv["getPerm"] = getPerm
+      func = plugins[i]["init"]
+      setFenv(func,newEnv)
+      func()
     end
   end
   while true do
