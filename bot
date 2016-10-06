@@ -192,7 +192,7 @@ function botMain()
     f = fs.open(shell.getRunningProgram(),"r")
     local currentBot = f.readAll()
     f.close()
-    h = http.get("https://raw.github.com/jakemroman/ChatCore/bot")
+    h = http.get("https://raw.github.com/jakemroman/ChatCore/master/bot")
     if not h then
       log("Failed to connect","alert")
     else
