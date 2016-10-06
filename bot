@@ -1,7 +1,7 @@
 -- QuantumTech Bot Ultimate Edition
 -- Copyright Jake Roman (c) 2016
 
-args = {...}
+local args = {...}
 
 -- Plugin Install
 if args[1] == "plugin" then
@@ -17,12 +17,11 @@ if args[1] == "plugin" then
     f.writeLine(pluginData)
     f.close()
     print("Plugin installed!")
-    return
   else
     printError("Usage: plugin <plugin-name>")
     printError("Installs a plugin from the web")
-    return
   end
+  return
 end
 
 -- Integrated Variables
@@ -43,9 +42,9 @@ if not chatbox then
 end
 
 -- Text Formatting
-local colorFormat = "\0\167"
+local colorFormat = "\167"
 local function format(str)
-  return string.gsub(str,"&",colorFormat)
+  return ({string.gsub(str, "&", colorFormat)})[1] -- 1 argument returned
 end
 
 -- Check Config
@@ -76,8 +75,8 @@ if not fs.exists(cfg.logFile) then
 end
 if not fs.exists(cfg.permFile) then
   f = fs.open(cfg.permFile,"w")
-  f.writeLine([[
---Permission Levels Range 0-4
+  f.write([[
+-- Permission levels, 0-4
 {
   ["botOwner"] = 4,
 }
@@ -88,25 +87,23 @@ if not fs.isDir(cfg.plugins) then
   fs.makeDir(cfg.plugins)
 end
 
--- Internal Functions
-f = fs.open(cfg.permFile,"r")
+-- Internal functions
+f = fs.open(cfg.permFile, "r")
 local permLevels = textutils.unserialise(f.readAll())
 f.close()
 function say(str)
-  chatbox.say(format(str),format(cfg.name),format(cfg.prefix))
+  chatbox.say(format(str), format(cfg.name), format(cfg.prefix))
 end
 function tell(user,str)
-  chatbox.tell(user,format(str),format(cfg.name),format(cfg.prefix))
+  chatbox.tell(user, format(str), format(cfg.name), format(cfg.prefix))
 end
 local function log(str,level)
   f = fs.open(cfg.logFile,"r")
   lineData = true
   local logTable = {}
-  repeat
-    lineData = f.readLine()
-    logTable[#logTable+1] = lineData
-  until lineData == nil
-  f.close()
+  for line in io.lines(cfg.logFile) do
+    table.insert(logTable, line)
+  end
   if true then
     local newLog = {}
     if #logTable >= cfg.logLimit then logTable[#logTable] = nil end
