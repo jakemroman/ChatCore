@@ -295,7 +295,17 @@ function botMain()
     if evt == "chat" then
       for i=1,#plugins do
         if plugins[i]["listener"] then
-          plugins[i]["listener"](msg,user)
+          local newEnv = _G
+          newEnv["say"] = say
+          newEnv["tell"] = tell
+          newEnv["perm"] = perm
+          newEnv["log"] = log
+          newEnv["plugins"] = plugins
+          newEnv["setPerm"] = setPerm
+          newEnv["getPerm"] = getPerm
+          func = plugins[i]["listener"]
+          setfenv(func,newEnv)
+          func(msg,user)
         end
       end
     end
