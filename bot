@@ -194,6 +194,9 @@ end
 function getPerm(username)
   return permLevels[username]
 end
+function setName(coreName)
+  cfg.name = coreName
+end
 
 -- Initialization
 say(cfg.startup)
@@ -259,6 +262,7 @@ function botMain()
       newEnv["plugins"] = plugins
       newEnv["setPerm"] = setPerm
       newEnv["getPerm"] = getPerm
+      newEnv["setName"] = setName
       func = plugins[i]["init"]
       setFenv(func,newEnv)
       func()
@@ -281,6 +285,7 @@ function botMain()
             newEnv["plugins"] = plugins
             newEnv["setPerm"] = setPerm
             newEnv["getPerm"] = getPerm
+            newEnv["setName"] = setName
             func = plugins[i]["commands"][n]
             setfenv(func,newEnv)
             local newArgs = {}
@@ -303,6 +308,7 @@ function botMain()
           newEnv["plugins"] = plugins
           newEnv["setPerm"] = setPerm
           newEnv["getPerm"] = getPerm
+          newEnv["setName"] = setName
           func = plugins[i]["listener"]
           setfenv(func,newEnv)
           func(msg,user)
