@@ -60,6 +60,7 @@ if not fs.exists("/bot-config") then
     ["cmdPrefix"] = "bot",
     ["startup"] = "&7Starting up...",
     ["autoUpdate"] = true,
+    ["botEnabled"] = true,
   }
   f = fs.open("/bot-config","w")
   f.writeLine(textutils.serialise(cfg))
@@ -251,6 +252,10 @@ function botMain()
     end
   else
     log("Auto-Updates are disabled","warn")
+  end
+  if not cfg.botEnabled then
+    log("QuantumBot is disabled in config!")
+    while true do sleep(100) end
   end
   for i=1,#plugins do
     if plugins[i]["init"] then
