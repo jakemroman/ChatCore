@@ -2,6 +2,7 @@
 -- Copyright Jake Roman (c) 2016
 
 args = {...}
+version = 1
 
 -- Plugin Install
 if args[1] == "plugin" then
@@ -204,6 +205,44 @@ say(cfg.startup)
 log("Starting Up","info")
 sleep(0.5)
 plugins = {}
+tasks = {}
+memory = {}
+
+-- Functions
+function botVersion()
+  return version
+end
+function schedule(func,time)
+  local tmr = os.startTimer(time)
+  tasks[tmr] = func
+  return tmr
+end
+function setValue(name,value)
+  memory[name] = value
+end
+function getValue(name)
+  return memory[name]
+end
+function resetValue(name)
+  memory[name] = nil
+end
+
+-- Sandbox
+sandbox = {
+  ["say"] = say,
+  ["tell"] = tell,
+  ["perm"] = perm,
+  ["log"] = log,
+  ["plugins"] = plugins,
+  ["setPerm"] = setPerm,
+  ["getPerm"] = getPerm,
+  ["setName"] = setName,
+  ["botVersion"] = botVersion,
+  ["addTask"] = schedule,
+  ["setValue"] = setValue,
+  ["getValue"] = getValue,
+  ["resetValue"] = resetValue,
+}
 
 -- Bot Code
 function botMain()
@@ -259,17 +298,8 @@ function botMain()
   end
   for i=1,#plugins do
     if plugins[i]["init"] then
-      local newEnv = _G
-      newEnv["say"] = say
-      newEnv["tell"] = tell
-      newEnv["perm"] = perm
-      newEnv["log"] = log
-      newEnv["plugins"] = plugins
-      newEnv["setPerm"] = setPerm
-      newEnv["getPerm"] = getPerm
-      newEnv["setName"] = setName
       func = plugins[i]["init"]
-      setFenv(func,newEnv)
+      setFenv(func,sandbox)
       func()
     end
   end
@@ -282,15 +312,7 @@ function botMain()
       for i=1,#plugins do
         for n,v in pairs(plugins[i]["commands"]) do
           if string.lower(cmdArgs[1]) == n then
-            local newEnv = _G
-            newEnv["say"] = say
-            newEnv["tell"] = tell
-            newEnv["perm"] = perm
-            newEnv["log"] = log
-            newEnv["plugins"] = plugins
-            newEnv["setPerm"] = setPerm
-            newEnv["getPerm"] = getPerm
-            newEnv["setName"] = setName
+            local newEnv = sandbox
             func = plugins[i]["commands"][n]
             setfenv(func,newEnv)
             local newArgs = {}
@@ -305,19 +327,17 @@ function botMain()
     if evt == "chat" then
       for i=1,#plugins do
         if plugins[i]["listener"] then
-          local newEnv = _G
-          newEnv["say"] = say
-          newEnv["tell"] = tell
-          newEnv["perm"] = perm
-          newEnv["log"] = log
-          newEnv["plugins"] = plugins
-          newEnv["setPerm"] = setPerm
-          newEnv["getPerm"] = getPerm
-          newEnv["setName"] = setName
           func = plugins[i]["listener"]
-          setfenv(func,newEnv)
+          setfenv(func,sandbox)
           func(msg,user)
         end
+      end
+    end
+    if evt == "timer" then
+      if tasks[user] then
+        local func = tasks[user]
+        setfenv(func,sandbox)
+        pcall(func)
       end
     end
   end
