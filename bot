@@ -242,6 +242,7 @@ sandbox = {
   ["setValue"] = setValue,
   ["getValue"] = getValue,
   ["resetValue"] = resetValue,
+  ["sleep"] = sleep,
 }
 
 -- Bot Code
