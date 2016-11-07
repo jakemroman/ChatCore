@@ -242,11 +242,12 @@ sandbox = {
   ["setValue"] = setValue,
   ["getValue"] = getValue,
   ["resetValue"] = resetValue,
-  ["sleep"] = sleep,
-  ["string"] = string,
-  ["os"] = os,
-  ["fs"] = fs,
 }
+for i,v in pairs(_G) do
+  if not sandbox[i] then
+    sandbox[i] = v
+  end
+end
 
 -- Bot Code
 function botMain()
